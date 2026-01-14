@@ -1,4 +1,5 @@
 using OrderService.Repositories;
+using OrderService.Integration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
+
+builder.Services.AddHttpClient<ICatalogClient, CatalogHttpClient>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5055");
+});
 
 var app = builder.Build();
 
@@ -17,7 +23,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.MapControllers();
-
 app.Run();
