@@ -8,10 +8,7 @@ public class CatalogApiTests : IClassFixture<PostgresFixture>
 
     public CatalogApiTests(PostgresFixture fixture)
     {
-        var factory = new CustomWebApplicationFactory(
-            fixture.Container.GetConnectionString()
-        );
-
+        var factory = new CustomWebApplicationFactory(fixture.ConnectionString);
         _client = factory.CreateClient();
     }
 
