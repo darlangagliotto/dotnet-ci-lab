@@ -4,6 +4,7 @@ using FluentAssertions;
 
 namespace OrderService.IntegrationTests;
 
+[Trait("Category", "Integration")]
 public class CreateOrderTests : IClassFixture<OrderServiceFactory>
 {
     private readonly HttpClient _client;
