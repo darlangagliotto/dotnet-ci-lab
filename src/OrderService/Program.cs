@@ -9,9 +9,13 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
 
+var catalogBaseUrl =
+    builder.Configuration["CATALOG_SERVICE_BASE_URL"]
+    ?? "http://localhost:5055";
+
 builder.Services.AddHttpClient<ICatalogClient, CatalogHttpClient>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5055");
+    client.BaseAddress = new Uri(catalogBaseUrl);
 });
 
 var app = builder.Build();
