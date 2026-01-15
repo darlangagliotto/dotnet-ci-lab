@@ -88,3 +88,12 @@ jobs:
       - name: Check liveness endpoint
         run: |
           curl -f http://localhost:5055/health/live
+
+      - name: Start CatalogService
+        run: |
+          dotnet run --project src/CatalogService &
+          sleep 10
+
+      - name: Health check
+        run: |
+          curl -f http://localhost:5055/health/live    

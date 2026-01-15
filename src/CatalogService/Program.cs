@@ -1,5 +1,5 @@
 using CatalogService.Repositories;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,66 +12,32 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
+// Repositório em memória
 builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
 
-// health checks
-builder.Services.AddHealthChecks()
-    .AddCheck("self", () => HealthCheckResult.Healthy());
+// Health checks
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-/*
- * ================================
- * API VERSIONADA - v1 (NOVO)
- * ================================
- */
-var v1 = app.MapGroup("/api/v1");
-
-v1.MapGet("/catalog", (ILogger<Program> logger) =>
+// Endpoint de health (liveness)
+app.MapHealthChecks("/health/live", new HealthCheckOptions
 {
-    logger.LogInformation("GET /api/v1/catalog chamado");
+    Predicate = _ => true
+});
+
+// Endpoint da API
+app.MapGet("/api/v1/catalog", () =>
+{
     return Results.Ok(new[] { "Item1", "Item2" });
 });
-
-/*
- * ================================
- * ENDPOINT LEGADO (COMPATIBILIDADE)
- * ================================
- */
-app.MapGet("/api/catalog", () =>
-{
-    return Results.Redirect("/api/v1/catalog");
-});
-
-/*
- * ================================
- * HEALTH CHECKS
- * ================================
- */
-
-app.MapHealthChecks("/health/live", new()
-{
-    Predicate = _ => false
-});
-
-app.MapHealthChecks("/health/ready");
-
-
-/*
- * ================================
- * MIDDLEWARE
- * ================================
- */
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-else
-{
-    app.UseHttpsRedirection();
-}
 
+app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
