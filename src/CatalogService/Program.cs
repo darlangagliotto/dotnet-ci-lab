@@ -1,4 +1,5 @@
 using CatalogService.Repositories;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,10 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
+
+// health checks
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy());
 
 var app = builder.Build();
 
@@ -38,12 +43,35 @@ app.MapGet("/api/catalog", () =>
     return Results.Redirect("/api/v1/catalog");
 });
 
+/*
+ * ================================
+ * HEALTH CHECKS
+ * ================================
+ */
+
+app.MapHealthChecks("/health/live", new()
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/health/ready");
+
+
+/*
+ * ================================
+ * MIDDLEWARE
+ * ================================
+ */
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
